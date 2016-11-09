@@ -2,14 +2,24 @@
 title クラス構成概観
 
 class "Game" as Game {
-    players : Map<ID, Player>[1]
-    state : State[1]
+    players : Map<ID, Player>
+    state : State
 }
 class "Player" as Player {
-    userID : ID[1]
-    role : Role[1]
+    userID : ID
+    isAlive : boolean
+    role : Role
+}
+class "SkillApplier" as SkillApplier {
+    plan : List<List<Skill>>
+    + SkillApplier(skills : Map<SkillKey, Skill>)
+    +apply(skillsAndTargets : List<Tuple<SkillKey, ID>>, players : Map<ID, Player>) : Map<ID, <Player>
+    -resolvePlan() : List<List<Skill>>
+    -makePatches(skillsAndTargets : List<Tuple<SkillKey, ID>>, players : Map<ID, Player>) : List<Map<ID, Player>>
+    -mergePatches(patches : List<Map<ID, Player>>) : Map<ID, <Player>
 }
 
-Game "1" *---- "3..*"Player
+Game "1" *--- "3..*" Player
+Game "1" *---- "1" SkillApplier
 
 @enduml
