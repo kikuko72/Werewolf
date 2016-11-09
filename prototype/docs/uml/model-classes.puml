@@ -1,0 +1,15 @@
+@startuml
+title クラス構成概観
+
+class "Game" as Game {
+    players : Map<ID, Player>[1]
+    state : State[1]
+}
+class "Player" as Player {
+    userID : ID[1]
+    role : Role[1]
+}
+
+Game "1" *---- "3..*"Player
+
+@enduml
