@@ -1,44 +1,41 @@
 @startuml
 title クラス構成概観
 
-class "Game" as Game {
-    playersState : PlayersState
-    gameState : GameState
+class "Controller" as Controller {
+    +listen(request : Operation) : Either<Exception, State>
 }
+
+interface "Operation" as Operation {
+    ~getGameID()    : GameID
+    ~getPlayerID()  : PlayerID
+}
+
 class "Player" as Player {
-    userID : ID
+    playerID : PlayerID
     isAlive : boolean
     role : Role
 }
-class "SkillApplier" as SkillApplier {
-    plan : ApplyPlan
-    + SkillApplier(skills : Map<SkillKey, Skill>)
-    +apply(List<SkillPlan>, playersState : PlayersState) : PlayersState
-    -resolvePlan() : ApplyPlan
-}
-class "ApplyPlan" as ApplyPlan {
-    plan : List<List<Skill>>
-    ~execute(skillPlans : List<SkillPlan> , playersState : PlayersState) : List<PlayersStatePatch>
-}
-class "PlayersState" as PlayersState {
-    applyPath(patch PlayersStatePatch) : PlayersState
-}
-class "PlayersStatePatch" as PlayersStatePatch {
-    ~mergePatches(patches : List<PlayersStatePatch>) : PlayersStatePatch
-}
-class "SkillPlan" as SkillPlan {
-    skillKey : SkillKey
-    victim : Player
-    ~getSkillKey() : SkillKey
-    ~getVictim() : Player
+
+abstract class "State" as State {
+    players : Map<PlayerID, Player>
+    channels : Channels
+    ~applyPath(patch StatePatch) : State
 }
 
-Game "1" *- "1" PlayersState
-Game "1" *---- "1" SkillApplier
-PlayersState  - PlayersStatePatch
-PlayersState "1" o-down- "3..*" Player
-SkillApplier "1" *-  "1" ApplyPlan
-ApplyPlan - SkillPlan
-ApplyPlan -up- PlayersStatePatch
+interface "StateStore" as StateStore {
+    +push(gameID: GameID, state : State) : Optional<Fail<State>>
+    +fetch(gameID : GameID) : Either<Exception, State>
+    +optimisticUpdate(gameID : GameID, oldState : State, newState : State) : Optional<Fail<State>>
+}
+
+interface "GameLogic" as GameLogic {
+    +call(playerID : PlayerID, operation Operation, targets : List<ID>, state : State) : Either<Exception, State>
+}
+
+Operation - Controller
+Controller - StateStore
+Controller -down- GameLogic
+StateStore -down- State
+State "1" o- "1...*" Player
 
 @enduml
