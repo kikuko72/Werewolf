@@ -2,7 +2,6 @@ package kikuko72.werewolf.model.id;
 
 import javaslang.control.Either;
 
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -21,16 +20,14 @@ final class UniqueIDGenerator {
      * @param <T> コンストラクタの引数。Idの内部実装用の値を意図しています
      * @param <E> Idの実装型
      * @return  Either.Left IDの生成の失敗を意味する例外
-     * @return  Either.Right 生成されたID
+     * Either.Right 生成されたID
      */
-    static <T, E extends Id> Either<Exception, E> generateOnce(final Function<T, E> constructor, final Supplier<T> valueGenerator, final Set<E> uniqueIdBucket) {
+    static <T, E extends Id> Either<Exception, E> generateOnce(final Function<T, E> constructor, final Supplier<T> valueGenerator, final UniqueIdBucket<E> uniqueIdBucket) {
         E candidate = constructor.apply(valueGenerator.get());
-        synchronized (uniqueIdBucket) {
-            if(!uniqueIdBucket.add(candidate)) {
-                return Either.left(new Exception("IDを生成できませんでした"));
-            }
-            return Either.right(candidate);
+        if(!uniqueIdBucket.put(candidate)) {
+            return Either.left(new Exception("IDを生成できませんでした"));
         }
+        return Either.right(candidate);
 
     }
 }
