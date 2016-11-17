@@ -9,8 +9,8 @@ import lombok.Value;
 @Value
 public class IdCollisionException extends Exception {
     private final int idBucketUsage;
-    IdCollisionException(String message, Throwable t, int idBucketUsage) {
-        super(message,t);
+    IdCollisionException(String message, int idBucketUsage) {
+        super(message);
         this.idBucketUsage = idBucketUsage;
     }
 }

@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.val;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -26,16 +27,18 @@ public final class ProcessUniquePlayerId implements PlayerId {
      * プロセス内で一意のPlayerIdを生成します。
      * このクラスのインスタンスを得るにはこのメソッドを呼び出してください。
      * @return  Either.Left IDの生成の失敗を意味する例外
-     * @return  Either.Right 生成されたID
+     * Either.Right 生成されたID
      */
     public static Either<Exception, ProcessUniquePlayerId> generate() {
         int count = 0;
-        Either<Exception, ProcessUniquePlayerId> tried;
         do {
-            tried = UniqueIDGenerator.generateOnce(ProcessUniquePlayerId::new, ProcessUniquePlayerId::getRandomCode, used);
+            ProcessUniquePlayerId candidate =  new ProcessUniquePlayerId(getRandomCode());
+            if(used.put(candidate)) {
+                return Either.right(candidate);
+            }
             count++;
-        } while(tried.isLeft() && count < 3);
-        return tried.left().map(e -> (Exception)new IdCollisionException("プレイヤーIDの生成に失敗しました。 使用済みID数: " + used.countRegisteredIds(), e, used.countRegisteredIds())).toEither();
+        } while(count < 3);
+        return Either.left(new IdCollisionException("プレイヤーIDの生成に失敗しました。 使用済みID数: " + used.countRegisteredIds(), used.countRegisteredIds()));
     }
 
     /**
@@ -57,9 +60,7 @@ public final class ProcessUniquePlayerId implements PlayerId {
      */
     public static boolean forget(ProcessUniquePlayerId... Ids) {
         Set<ProcessUniquePlayerId> idSet = new HashSet<>();
-        for(val id : Ids) {
-            idSet.add(id);
-        }
+        Collections.addAll(idSet, Ids);
         return forget(idSet);
     }
 
