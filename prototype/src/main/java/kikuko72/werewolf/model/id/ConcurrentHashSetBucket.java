@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @EqualsAndHashCode
 @ToString
 class ConcurrentHashSetBucket<E extends  Id> implements UniqueIdBucket<E> {
-    private Set<E> bucket = ConcurrentHashMap.newKeySet();
+    private final Set<E> bucket = ConcurrentHashMap.newKeySet();
 
     @Override
     public boolean put(E element) {
